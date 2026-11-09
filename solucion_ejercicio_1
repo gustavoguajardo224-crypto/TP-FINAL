@@ -26,9 +26,18 @@ if datos_df.at[0, "temperatura"] == None:
 
      return datos_df.to_dict(orient="records")[0]
 
-registro
-"sensor_id":{"sensor_001"},
-"temperatura":[24.5c]
-"ubicación":[None]
+
 
 Punto B: Monitoreo y Mapeo Estadístico ( generar_resumen_sensores ): Desarrolla la función generar_resumen_sensores(lista_sensores_limpios, umbral_temperatura) que tome una colección de registros sanitizados previamente con la función del Punto A y un valor límite. Debe retornar una tupla (lista_sensores_alerta, promedio_temperatura) conteniendo los IDs de los dispositivos que superan el umbral estipulado y el promedio térmico global de la planta. Incluye un bloque de ejecución que demuestre el flujo completo desde la limpieza de registros crudos hasta la impresión formateada del reporte final.
+
+def generar_resumen_sensores(lista_sensores_limpios: List[dict], sensores_maximo:float)->tuple pass
+resumen_sensores=0
+ids_a_devolver=[]
+for lectura in lista_lecturas_limpias:
+resumen_sensores+=lectura.get("caudal")
+resumen_sensores = sensores_maximo/len(list_lecturas_limpis)
+if sensores_maximo < lectura.get("sensores):
+ids_a_devolver.append(lectura.get(sensores_id))
+resumen_sensores=sensores maximo / len(list_lectura_limpias)
+return (ids_a_devolver, resumen_sensores)
+
