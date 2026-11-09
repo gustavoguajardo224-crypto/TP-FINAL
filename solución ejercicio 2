@@ -1,0 +1,87 @@
+
+Ejercicio 2 - Modelo de Productos, Excepciones y Persistencia (40 puntos)
+
+
+Para la división de equipamiento sustentable de EcoTech Solutions, se requiere un módulo de software que gestione los productos del catálogo, impida inconsistencias en el inventario mediante validaciones de negocio y garantice la persistencia del stock en disco.
+
+Punto A: Dominio del Catálogo y Reglas de Inventario: Construye la jerarquía orientada a objetos para los productos ecológicos. Diseña una clase de excepción personalizada StockInvalidoError y aplícala dentro de la clase base DispositivoEcológico para impedir que el stock tome valores negativos mediante encapsulamiento explícito. Desarrolla la clase especializada PanelSolar, incorporando sus atributos específicos mediante herencia y aplicando polimorfismo para personalizar la emisión de su ficha técnica comercial.
+
+
+class StockInvalidoError(Exception):
+    def __init__(self, stock_intentado, mensaje="El stock no puede ser un valor negativo."):
+        self.stock_intentado = stock_intentado
+        self.mensaje = f"{mensaje} (Valor recibido: {stock_intentado})"
+        super().__init__(self.mensaje)
+
+
+class DispositivoEcologico:
+    def __init__(self, codigo: str, nombre: str, precio: float, stock: int):
+        self.codigo = codigo
+        self.nombre = nombre
+        self.precio = precio
+        self.stock = stock
+
+    @property
+    def stock(self) -> int:
+        return self._stock
+
+    @stock.setter
+    def stock(self, valor: int):
+        if valor < 0:
+            raise StockInvalidoError(valor)
+        self._stock = valor
+
+    def emitir_ficha_tecnica(self) -> str:
+        return f"[{self.codigo}] {self.nombre} | Precio: ${self.precio:.2f} | Stock disponible: {self.stock} u."
+
+
+class PanelSolar(DispositivoEcologico):
+    def __init__(self, codigo: str, nombre: str, precio: float, stock: int, potencia_watts: int, eficiencia_porcentaje: float):
+        super().__init__(codigo, nombre, precio, stock)
+        self.potencia_watts = potencia_watts
+        self.eficiencia_porcentaje = eficiencia_porcentaje
+
+    def emitir_ficha_tecnica(self) -> str:
+        ficha_base = super().emitir_ficha_tecnica()
+        return f"{ficha_base} | Potencia: {self.potencia_watts}W | Eficiencia: {self.eficiencia_porcentaje} (Energía Fotovoltaica)"
+
+
+
+
+
+
+Punto B: Persistencia y Gestión del Catálogo: Implementa la clase GestorInventario con el método guardar_catalogo_json(lista_dispositivos, ruta_archivo) capaz de serializar y almacenar en catalogo_ecotech.json las instancias creadas en el Punto A. Incluye un bloque de prueba donde se verifique la captura controlada de StockInvalidoError ante un intento de asignación de stock erróneo, finalizando con la exportación exitosa de los productos válidos al archivo JSON.
+
+import json
+
+
+class GestorInventario:
+    @staticmethod
+    def guardar_catalogo_json(lista_dispositivos: list, ruta_archivo: str = "catalogo_ecotech.json") -> None:
+        datos_serializables = [dispositivo.to_dict() for dispositivo in lista_dispositivos]
+        with open(ruta_archivo, mode="w", encoding="utf-8") as archivo:
+            json.dump(datos_serializables, archivo, indent=4, ensure_ascii=False)
+        print(f"Catálogo exportado exitosamente en '{ruta_archivo}'.")
+
+
+if __name__ == "__main__":
+    catalogo_valido = []
+
+    panel_1 = PanelSolar("PS-101", "Panel Monocristalino EcoMax", 250.00, 15, 450, 21.5)
+    panel_2 = PanelSolar("PS-102", "Panel Bifacial SolarPro", 340.50, 8, 550, 22.8)
+    catalogo_valido.extend([panel_1, panel_2])
+
+    for dispositivo in catalogo_valido:
+        print(dispositivo.emitir_ficha_tecnica())
+
+    try:
+        panel_erroneo = PanelSolar("PS-999", "Panel Defectuoso", 100.00, -5, 300, 18.0)
+    except StockInvalidoError as error:
+        print(f"Error capturado al crear producto: {error}")
+
+    try:
+        panel_1.stock = -10
+    except StockInvalidoError as error:
+        print(f"Error capturado al actualizar stock: {error}")
+
+    GestorInventario.guardar_catalogo_json(catalogo_valido, "catalogo_ecotech.json")
